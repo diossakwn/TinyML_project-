@@ -1,0 +1,169 @@
+[
+    {
+        "id": "a3f22ae3b0e101cb",
+        "type": "tab",
+        "label": "Component Counter",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "9c602f3ec8d4d17e",
+        "type": "serial in",
+        "z": "a3f22ae3b0e101cb",
+        "name": "Arduino Serial",
+        "serial": "6b53ea59c47f8066",
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "08d8e7103d10166c"
+            ]
+        ]
+    },
+    {
+        "id": "08d8e7103d10166c",
+        "type": "function",
+        "z": "a3f22ae3b0e101cb",
+        "name": "Parse Prediction",
+        "func": "let line = msg.payload.trim().toLowerCase();\n\nlet data = flow.get(\"pred\") || {};\n\nlet m = line.match(/^([a-z_]+):\\s*([0-9.]+)/);\n\nif (m) {\n    let label = m[1];\n    let value = parseFloat(m[2]);\n    data[label] = value;\n    flow.set(\"pred\", data);\n}\n\n// quand la dernière classe arrive\nif (line.startsWith(\"resistor\")) {\n\n    let maxLabel = null;\n    let maxVal = -1;\n\n    for (let k in data) {\n        if (data[k] > maxVal) {\n            maxVal = data[k];\n            maxLabel = k;\n        }\n    }\n\n    flow.set(\"pred\", {});\n\n    // seuil de confiance 90%\n    if (maxVal >= 0.4) {\n        msg.payload = maxLabel;\n        return msg;\n    }\n\n    return null;\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 320,
+        "y": 200,
+        "wires": [
+            [
+                "f0220412625fbe24",
+                "636a4750c030af80"
+            ]
+        ]
+    },
+    {
+        "id": "f0220412625fbe24",
+        "type": "function",
+        "z": "a3f22ae3b0e101cb",
+        "name": "Update Counters",
+        "func": "let counters = flow.get(\"counters\") || {\n    led: 0,\n    potentiometre: 0,\n    resistor: 0\n};\n\nlet component = msg.payload;\n\nif (counters[component] !== undefined) {\n    counters[component]++;\n}\n\nflow.set(\"counters\", counters);\n\nmsg.payload = counters;\nreturn msg;",
+        "outputs": 1,
+        "x": 520,
+        "y": 200,
+        "wires": [
+            [
+                "72c3dc283737dba9",
+                "ee4f6395699661c4",
+                "2194f0b9f8e64384"
+            ]
+        ]
+    },
+    {
+        "id": "72c3dc283737dba9",
+        "type": "ui_text",
+        "z": "a3f22ae3b0e101cb",
+        "group": "b4a1b76c3625bb3d",
+        "order": 1,
+        "width": 6,
+        "height": 1,
+        "name": "LED Counter",
+        "label": "LED",
+        "format": "{{msg.payload.led}}",
+        "layout": "row-spread",
+        "className": "",
+        "style": false,
+        "font": "",
+        "fontSize": "",
+        "color": "#000000",
+        "x": 740,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "ee4f6395699661c4",
+        "type": "ui_text",
+        "z": "a3f22ae3b0e101cb",
+        "group": "b4a1b76c3625bb3d",
+        "order": 2,
+        "width": 6,
+        "height": 1,
+        "name": "Resistor Counter",
+        "label": "Resistor",
+        "format": "{{msg.payload.resistor}}",
+        "layout": "row-spread",
+        "x": 750,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "2194f0b9f8e64384",
+        "type": "ui_text",
+        "z": "a3f22ae3b0e101cb",
+        "group": "b4a1b76c3625bb3d",
+        "order": 3,
+        "width": 6,
+        "height": 1,
+        "name": "Potentiometer Counter",
+        "label": "Potentiometer",
+        "format": "{{msg.payload.potentiometre}}",
+        "layout": "row-spread",
+        "x": 760,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "636a4750c030af80",
+        "type": "debug",
+        "z": "a3f22ae3b0e101cb",
+        "name": "Prediction",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "6b53ea59c47f8066",
+        "type": "serial-port",
+        "serialport": "COM8",
+        "serialbaud": "115200",
+        "databits": 8,
+        "parity": "none",
+        "stopbits": 1,
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char"
+    },
+    {
+        "id": "b4a1b76c3625bb3d",
+        "type": "ui_group",
+        "name": "Component Counters",
+        "tab": "5248be0f0948ad5c",
+        "order": 1,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "5248be0f0948ad5c",
+        "type": "ui_tab",
+        "name": "Component Detection",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "53eed70cfdb436d1",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-node-serialport": "2.0.3",
+            "node-red-dashboard": "3.6.6"
+        }
+    }
+]
