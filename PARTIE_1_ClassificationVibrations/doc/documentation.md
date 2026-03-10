@@ -1,0 +1,2 @@
+2 vibration ont été produit une vibration molle et une vibration agiter (description sur les vidéos) dont nous pouvons voir les différence en visualisant le dataset  s'accentuent pour l'accéleration suivant Z et le gyroscope suivant Y.
+![alt text](image.png) ![alt text](image-1.png) ![alt text](image-2.png) ![alt text](image-3.png)
